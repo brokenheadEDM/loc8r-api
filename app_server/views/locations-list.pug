@@ -8,7 +8,7 @@ block content
   .row 
     .col-12.col-md-8 
       .error= message
-      each location in locations
+      app-home-list 
         .card 
           .card-block 
             h4 
@@ -21,4 +21,9 @@ block content
                 span.badge.badge-warning= facility 
                
     .col-12.col-md-4 
-      p.lead= sidebar       
+      p.lead= sidebar  
+
+  block scripts 
+    script(src='/build/runtime.e4985b6c090739db.js')
+    script(src='/build/polyfills.05600847d04151be.js')
+    script(src='/build/main.d8e13181331e4a62.js')         

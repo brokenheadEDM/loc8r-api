@@ -5,7 +5,7 @@ const apiOptions = {
   server: 'http://localhost:3000'
 };
 if(process.env.NODE_ENV === 'production'){
-  apiOptions.server = 'http://yourapi.com';
+  apiOptions.server = 'https://loc8r-api-l6gc.onrender.com';
 }
 
 const requestOptions ={
@@ -41,9 +41,10 @@ const homelist = (req, res) => {
   };
   request(
     requestOptions,
-    (err, {statusCode}, body) => {
+    (err, response, body) => {
       console.log("API Response:", body);
-      let data = [];
+      const statusCode = response.statusCode;
+      let data = body;
       if (statusCode === 200 && body.length) {
       data = body.map( (item) => {
         item.distance = formatDistance(item.distance);

@@ -1,5 +1,22 @@
 const mongoose = require('mongoose');
 const Loc = mongoose.model('Location');
+const User = mongoose.model('User');
+
+const getAuthor = async (req) => {
+  if (req.auth && req.auth.email) {
+    try {
+      const user = await User.findOne({ email: req.auth.email });
+      if (!user) {
+        throw new Error("User not found");
+      }
+      return user.name;
+    } catch (err) {
+      throw err;
+    }
+  } else {
+    throw new Error("User not found");
+  }
+};
 
 const doSetAverageRating = async (location) => {
     if (location.reviews && location.reviews.length > 0) {
@@ -26,38 +43,49 @@ const doSetAverageRating = async (location) => {
       console.log(err);
     }
   };
-const doAddReview = async (req, res, location) => {
+  const doAddReview = async (req, res, location, authorName) => {
     if (!location) {
-        return res.status(404).json({ "message": "Location not found"});
+      return res.status(404).json({ message: "Location not found" });
     }
-    const { author, rating, reviewText } = req.body;
-    location.reviews.push({ author, rating, reviewText });
-
+  
+    location.reviews.push({
+      author: authorName,
+      rating: req.body.rating,
+      reviewText: req.body.reviewText,
+      createdOn: new Date(),
+    });
+  
     try {
-        const updatedLocation = await location.save();
-        await updateAverageRating(updatedLocation._id);
-        const thisReview = updatedLocation.reviews.slice(-1).pop();
-        return res.status(201).json(thisReview);
-    }   catch (err) {
-        return res.status(400).json(err);
-    }
-};    
-const reviewsCreate = async (req, res) => {
-    const locationId = req.params.locationid;
-    if (!locationId) {
-        return res.status(404).json({ "message": "Location not found"});
-    }
-    try {
-        const location = await Loc.findById(locationId).select('reviews').exec();
-        if (location) {
-            await doAddReview(req, res, location);
-        } else {
-          return res.status(404).json({ "message": "Location not found" });
-        }    
+      const updatedLocation = await location.save(); // `await`를 사용하여 저장
+      const review = updatedLocation.reviews[updatedLocation.reviews.length - 1];
+      res.status(201).json(review);
     } catch (err) {
-        return res.status(400).json(err);
+      res.status(400).json(err);
     }
+  };
+     
+const reviewsCreate = async (req, res) => {
+  try {
+    const userName = await getAuthor(req); // 사용자 이름 가져오기
+    const locationId = req.params.locationid;
+
+    if (!locationId) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    const location = await Loc.findById(locationId).select("reviews");
+    if (!location) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    // 리뷰 추가
+    await doAddReview(req, res, location, userName);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
+
+
 const reviewsReadOne = async (req, res) => {
     try {
         const location = await Loc.findById(req.params.locationid).select('name reviews').exec();
