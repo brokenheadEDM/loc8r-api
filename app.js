@@ -7,8 +7,8 @@ const logger = require('morgan');
 const passport = require('passport');
 require('./app_api/models/db');
 require('./app_api/config/passport');
+const usersRouter = require('./app_server/routes/users');
 const apiRouter = require('./app_api/routes/index');
-
 const app = express();
 
 const cors = require('cors');
@@ -34,19 +34,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'app_public', 'build')));
 app.use(passport.initialize());
 //app.use('/', indexRouter);
-//app.use('./users', usersRouter);
+app.use('/users', usersRouter);
 app.use('/api', apiRouter);
 
 app.get(/(\/about)|(\/location\/[a-z0-9]{24})/, function(req, res, next) {
   res.sendFile(path.join(__dirname, 'app_public', 'build', 'index.html'));
 });
 
-app.get('*', function(req, res, next) {
-  res.sendFile(path.join(__dirname, 'app_public', 'build', 'index.html'));
-});
+//app.get('*', function(req, res, next) {
+  //res.sendFile(path.join(__dirname, 'app_public', 'build', 'index.html'));
+//});
 
 // error handler
-// Catch unauthorised errors
 app.use((err, req, res, next) => {
   if(err.name === 'UnauthorizedError') {
     res
@@ -54,15 +53,16 @@ app.use((err, req, res, next) => {
       .json({"message" : err.name + ": " + err.message});
   }
 });
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
+
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
   // render the error page
   res.status(err.status || 500);
   res.render('error');
