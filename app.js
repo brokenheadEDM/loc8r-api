@@ -41,9 +41,9 @@ app.use(passport.initialize());
 //app.use('./users', usersRouter);
 app.use('/api', apiRouter);
 
-app.get('*', function(req, res, next) {
-  res.sendFile(path.join(__dirname, 'app_public', 'build/browser', 'index.html'));
-});
+//app.get('*', function(req, res, next) {
+  //res.sendFile(path.join(__dirname, 'app_public', 'build/browser', 'index.html'));
+//});
 
 app.get(/(\/about)|(\/location\/[a-z0-9]{24})/, function(req, res, next) {
   res.sendFile(path.join(__dirname, 'app_public', 'build', 'index.html'));
